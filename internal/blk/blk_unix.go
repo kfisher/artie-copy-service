@@ -33,6 +33,7 @@ package blk
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"os/exec"
 )
 
@@ -64,7 +65,7 @@ func GetBlockDevice(sn string) (BlockDevice, bool, error) {
 	cmd := exec.Command("lsblk", "--list", "--paths", "--json", "--output", "NAME,SERIAL,LABEL,TYPE")
 	out, err := cmd.Output()
 	if err != nil {
-		// TODO: log information about the error
+		slog.Warn("lsblk exited with an error status", "command", cmd.Args)
 		return BlockDevice{}, false, errors.New("lsblk command failed")
 	}
 
