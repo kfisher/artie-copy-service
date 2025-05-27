@@ -117,6 +117,7 @@ func ParseMessage(line string) (any, error) {
 	}
 
 	data := strings.Split(parts[1], ",")
+	dataLength := len(data)
 
 	// NOTE: Some data is ignored here because it seems to be data only
 	//       relevant to MakeMKV. In fact, some of the data we are parsing
@@ -124,6 +125,9 @@ func ParseMessage(line string) (any, error) {
 
 	switch parts[0] {
 	case "CINFO":
+		if dataLength < 3 {
+			return nil, errors.New("[CINFO] too few data items")
+		}
 		id, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[CINFO] failed to parse attribute id")
@@ -131,6 +135,9 @@ func ParseMessage(line string) (any, error) {
 		value := strings.Trim(data[2], "\"")
 		return DiscInfoMessage{Attribute{AttributeId(id), value}}, nil
 	case "DRV":
+		if dataLength < 7 {
+			return nil, errors.New("[DRV] too few data items")
+		}
 		index, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[DRV] failed to parse index")
@@ -155,6 +162,9 @@ func ParseMessage(line string) (any, error) {
 			Device:    device,
 		}, nil
 	case "MSG":
+		if dataLength < 4 {
+			return nil, errors.New("[MSG] too few data items")
+		}
 		code, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[MSG] failed to parse code")
@@ -162,6 +172,9 @@ func ParseMessage(line string) (any, error) {
 		message := strings.Trim(data[3], "\"")
 		return GeneralMessage{int32(code), message}, nil
 	case "PRGT":
+		if dataLength < 3 {
+			return nil, errors.New("[PRGT] too few data items")
+		}
 		id, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[PRGT] failed to parse id")
@@ -173,6 +186,9 @@ func ParseMessage(line string) (any, error) {
 		name := strings.Trim(data[2], "\"")
 		return ProgressTitleMessage{int32(code), int32(id), name, 'T'}, nil
 	case "PRGC":
+		if dataLength < 3 {
+			return nil, errors.New("[PRGC] too few data items")
+		}
 		id, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[PRGT] failed to parse id")
@@ -184,6 +200,9 @@ func ParseMessage(line string) (any, error) {
 		name := strings.Trim(data[2], "\"")
 		return ProgressTitleMessage{int32(code), int32(id), name, 'C'}, nil
 	case "PRGV":
+		if dataLength < 3 {
+			return nil, errors.New("[PRGV] too few data items")
+		}
 		current, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[PRGV] failed to parse current value")
@@ -198,6 +217,9 @@ func ParseMessage(line string) (any, error) {
 		}
 		return ProgressValueMessage{int32(current), int32(total), int32(max)}, nil
 	case "SINFO":
+		if dataLength < 5 {
+			return nil, errors.New("[SINFO] too few data items")
+		}
 		title, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[SINFO] failed to parse title index")
@@ -213,12 +235,18 @@ func ParseMessage(line string) (any, error) {
 		value := strings.Trim(data[4], "\"")
 		return StreamInfoMessage{int32(index), int32(title), Attribute{AttributeId(id), value}}, nil
 	case "TCOUNT":
+		if dataLength < 1 {
+			return nil, errors.New("[TCOUNT] too few data items")
+		}
 		count, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[TCOUNT] failed to parse count")
 		}
 		return TitleCountMessage{int32(count)}, nil
 	case "TINFO":
+		if dataLength < 4 {
+			return nil, errors.New("[TINFO] too few data items")
+		}
 		index, err := strconv.ParseInt(data[0], 10, 32)
 		if err != nil {
 			return nil, errors.New("[TINFO] failed to parse index")

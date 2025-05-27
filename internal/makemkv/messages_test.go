@@ -254,5 +254,43 @@ func TestParseTitleInfoMessage(t *testing.T) {
 	}
 }
 
-// TODO: Write an error test. Test can have a list of invalid messages and
-//       verify all return an error.
+func TestParseMessageErrorHandling(t *testing.T) {
+	cases := []string{
+		"UNKNOWN:0,0,0",
+		"INVALID",
+		"CINFO:INVALID,0,\"The A-Team\"",
+		"CINFO:2,0",
+		"DRV:INVALID,1,999,12,\"4815162342\",\"A_TEAM\",\"/dev/sr1\"",
+		"DRV:2,INVALID,999,12,\"4815162342\",\"A_TEAM\",\"/dev/sr1\"",
+		"DRV:2,1,999,INVALID2,\"4815162342\",\"A_TEAM\",\"/dev/sr1\"",
+		"DRV:2,1,999,12,\"A_TEAM\",\"/dev/sr1\"",
+		"MSG:INVALID,0,0,\"Using direct disc access mode\",\"Using direct disc access mode\"",
+		"MSG:3007",
+		"PRGC:INVALID,7,\"Processing AV clips\"",
+		"PRGC:3400,INVALID,\"Processing AV clips\"",
+		"PRGC:3400,7",
+		"PRGT:INVALID,9,\"Opening Blu-ray disc\"",
+		"PRGT:3404,INVALID,\"Opening Blu-ray disc\"",
+		"PRGT:3404,9",
+		"PRGV:INVALID,21318,65536",
+		"PRGV:30929,INVALID,65536",
+		"PRGV:30929,21318,INVALID",
+		"PRGV:30929,21318",
+		"SINFO:INVALID,1,7,0,\"Dolby Digital\"",
+		"SINFO:5,INVALID,7,0,\"Dolby Digital\"",
+		"SINFO:5,1,INVALID,0,\"Dolby Digital\"",
+		"SINFO:5",
+		"TCOUNT:INVALID",
+		"TCOUNT:",
+		"TINFO:INVALID,27,0,\"The A-Team_t00.mkv\"",
+		"TINFO:3,INVALID,0,\"The A-Team_t00.mkv\"",
+		"TINFO:3",
+	}
+
+	for _, line := range cases {
+		_, err := ParseMessage(line)
+		if err == nil {
+			t.Errorf("ParseMessage should have returned an error for input: %s", line)
+		}
+	}
+}
