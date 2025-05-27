@@ -35,12 +35,12 @@ package makemkv
 type DriveState int32
 
 const (
-	EMPTY_CLOSED DriveState = 0
-	EMPTY_OPEN   DriveState = 1
-	INSERTED     DriveState = 2
-	LOADING      DriveState = 3
-	NO_DRIVE     DriveState = 256
-	UNMOUNTING   DriveState = 257
+	DS_EMPTY_CLOSED DriveState = 0
+	DS_EMPTY_OPEN   DriveState = 1
+	DS_INSERTED     DriveState = 2
+	DS_LOADING      DriveState = 3
+	DS_NO_DRIVE     DriveState = 256
+	DS_UNMOUNTING   DriveState = 257
 )
 
 // MediaFlag represents a flag that can be applied to media inserted into a
@@ -49,19 +49,19 @@ type MediaFlag int32
 
 const (
 	// Digital Video Disc (DVD)
-	DVD_FILES_PRESENT MediaFlag = 1
+	MF_DVD_FILES_PRESENT MediaFlag = 1
 
 	// High-Definition Video Disc (HDVD)
-	HDVD_FILES_PRESENT MediaFlag = 2
+	MF_HDVD_FILES_PRESENT MediaFlag = 2
 
 	// Blu-ray Disc
-	BLURAY_FILES_PRESENT MediaFlag = 4
+	MF_BLURAY_FILES_PRESENT MediaFlag = 4
 
 	// Advanced Access Content System (AACS)
-	AACS_FILES_PRESENT MediaFlag = 8
+	MF_AACS_FILES_PRESENT MediaFlag = 8
 
 	// Blu-ray Disc Secure Video Path (BDSVP)
-	BDSVM_FILES_PRESENT MediaFlag = 16
+	MF_BDSVM_FILES_PRESENT MediaFlag = 16
 )
 
 // AttributeId is an attribute type identifier for attributes reported by
@@ -73,55 +73,55 @@ const (
 type AttributeId int32
 
 const (
-	UNKNOWN                          AttributeId = 0
-	TYPE                             AttributeId = 1
-	NAME                             AttributeId = 2
-	LANG_CODE                        AttributeId = 3
-	LANG_NAME                        AttributeId = 4
-	CODEC_ID                         AttributeId = 5
-	CODEC_SHORT                      AttributeId = 6
-	CODEC_LONG                       AttributeId = 7
-	CHAPTER_COUNT                    AttributeId = 8
-	DURATION                         AttributeId = 9
-	DISK_SIZE                        AttributeId = 10
-	DISK_SIZE_BYTES                  AttributeId = 11
-	STREAM_TYPE_EXTENSION            AttributeId = 12
-	BITRATE                          AttributeId = 13
-	AUDIO_CHANNELS_COUNT             AttributeId = 14
-	ANGLE_INFO                       AttributeId = 15
-	SOURCE_FILE_NAME                 AttributeId = 16
-	AUDIO_SAMPLE_RATE                AttributeId = 17
-	AUDIO_SAMPLE_SIZE                AttributeId = 18
-	VIDEO_SIZE                       AttributeId = 19
-	VIDEO_ASPECT_RATIO               AttributeId = 20
-	VIDEO_FRAME_RATE                 AttributeId = 21
-	STREAM_FLAGS                     AttributeId = 22
-	DATE_TIME                        AttributeId = 23
-	ORIGINAL_TITLE_ID                AttributeId = 24
-	SEGMENTS_COUNT                   AttributeId = 25
-	SEGMENTS_MAP                     AttributeId = 26
-	OUTPUT_FILE_NAME                 AttributeId = 27
-	METADATA_LANGUAGE_CODE           AttributeId = 28
-	METADATA_LANGUAGE_NAME           AttributeId = 29
-	TREE_INFO                        AttributeId = 30
-	PANEL_TITLE                      AttributeId = 31
-	VOLUME_NAME                      AttributeId = 32
-	ORDER_WEIGHT                     AttributeId = 33
-	OUTPUT_FORMAT                    AttributeId = 34
-	OUTPUT_FORMAT_DESCRIPTION        AttributeId = 35
-	SEAMLESS_INFO                    AttributeId = 36
-	PANEL_TEXT                       AttributeId = 37
-	MKV_FLAGS                        AttributeId = 38
-	MKV_FLAGS_TEXT                   AttributeId = 39
-	AUDIO_CHANNEL_LAYOUT_NAME        AttributeId = 40
-	OUTPUT_CODEC_SHORT               AttributeId = 41
-	OUTPUT_CONVERSION_TYPE           AttributeId = 42
-	OUTPUT_AUDIO_SAMPLE_RATE         AttributeId = 43
-	OUTPUT_AUDIO_SAMPLE_SIZE         AttributeId = 44
-	OUTPUT_AUDIO_CHANNELS_COUNT      AttributeId = 45
-	OUTPUT_AUDIO_CHANNEL_LAYOUT_NAME AttributeId = 46
-	OUTPUT_AUDIO_CHANNEL_LAYOUT      AttributeId = 47
-	OUTPUT_AUDIO_MIX_DESCRIPTION     AttributeId = 48
-	COMMENT                          AttributeId = 49
-	OFFSET_SEQUENCE_ID               AttributeId = 50
+	AI_UNKNOWN                          AttributeId = 0
+	AI_TYPE                             AttributeId = 1
+	AI_NAME                             AttributeId = 2
+	AI_LANG_CODE                        AttributeId = 3
+	AI_LANG_NAME                        AttributeId = 4
+	AI_CODEC_ID                         AttributeId = 5
+	AI_CODEC_SHORT                      AttributeId = 6
+	AI_CODEC_LONG                       AttributeId = 7
+	AI_CHAPTER_COUNT                    AttributeId = 8
+	AI_DURATION                         AttributeId = 9
+	AI_DISK_SIZE                        AttributeId = 10
+	AI_DISK_SIZE_BYTES                  AttributeId = 11
+	AI_STREAM_TYPE_EXTENSION            AttributeId = 12
+	AI_BITRATE                          AttributeId = 13
+	AI_AUDIO_CHANNELS_COUNT             AttributeId = 14
+	AI_ANGLE_INFO                       AttributeId = 15
+	AI_SOURCE_FILE_NAME                 AttributeId = 16
+	AI_AUDIO_SAMPLE_RATE                AttributeId = 17
+	AI_AUDIO_SAMPLE_SIZE                AttributeId = 18
+	AI_VIDEO_SIZE                       AttributeId = 19
+	AI_VIDEO_ASPECT_RATIO               AttributeId = 20
+	AI_VIDEO_FRAME_RATE                 AttributeId = 21
+	AI_STREAM_FLAGS                     AttributeId = 22
+	AI_DATE_TIME                        AttributeId = 23
+	AI_ORIGINAL_TITLE_ID                AttributeId = 24
+	AI_SEGMENTS_COUNT                   AttributeId = 25
+	AI_SEGMENTS_MAP                     AttributeId = 26
+	AI_OUTPUT_FILE_NAME                 AttributeId = 27
+	AI_METADATA_LANGUAGE_CODE           AttributeId = 28
+	AI_METADATA_LANGUAGE_NAME           AttributeId = 29
+	AI_TREE_INFO                        AttributeId = 30
+	AI_PANEL_TITLE                      AttributeId = 31
+	AI_VOLUME_NAME                      AttributeId = 32
+	AI_ORDER_WEIGHT                     AttributeId = 33
+	AI_OUTPUT_FORMAT                    AttributeId = 34
+	AI_OUTPUT_FORMAT_DESCRIPTION        AttributeId = 35
+	AI_SEAMLESS_INFO                    AttributeId = 36
+	AI_PANEL_TEXT                       AttributeId = 37
+	AI_MKV_FLAGS                        AttributeId = 38
+	AI_MKV_FLAGS_TEXT                   AttributeId = 39
+	AI_AUDIO_CHANNEL_LAYOUT_NAME        AttributeId = 40
+	AI_OUTPUT_CODEC_SHORT               AttributeId = 41
+	AI_OUTPUT_CONVERSION_TYPE           AttributeId = 42
+	AI_OUTPUT_AUDIO_SAMPLE_RATE         AttributeId = 43
+	AI_OUTPUT_AUDIO_SAMPLE_SIZE         AttributeId = 44
+	AI_OUTPUT_AUDIO_CHANNELS_COUNT      AttributeId = 45
+	AI_OUTPUT_AUDIO_CHANNEL_LAYOUT_NAME AttributeId = 46
+	AI_OUTPUT_AUDIO_CHANNEL_LAYOUT      AttributeId = 47
+	AI_OUTPUT_AUDIO_MIX_DESCRIPTION     AttributeId = 48
+	AI_COMMENT                          AttributeId = 49
+	AI_OFFSET_SEQUENCE_ID               AttributeId = 50
 )
