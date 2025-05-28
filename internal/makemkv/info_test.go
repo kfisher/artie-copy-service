@@ -44,10 +44,10 @@ func TestAddAttributeToStreamInfo(t *testing.T) {
 
 	if v, ok := stream.Attributes[attr.Id]; ok {
 		if v != attr.Value {
-			t.Errorf("Attribute %d has value %s, expected %s", attr.Id, v, attr.Value)
+			t.Errorf("Attribute %s has value %s, expected %s", attr.Id, v, attr.Value)
 		}
 	} else {
-		t.Errorf("Attribute %d not found in stream", attr.Id)
+		t.Errorf("Attribute %s not found in stream", attr.Id)
 	}
 
 	if err := stream.AddAttribute(attr); err == nil {
@@ -67,10 +67,10 @@ func TestAddAttributeToTitleInfo(t *testing.T) {
 
 	if v, ok := title.Attributes[attr.Id]; ok {
 		if v != attr.Value {
-			t.Errorf("Attribute %d has value %s, expected %s", attr.Id, v, attr.Value)
+			t.Errorf("Attribute %s has value %s, expected %s", attr.Id, v, attr.Value)
 		}
 	} else {
-		t.Errorf("Attribute %d not found in stream", attr.Id)
+		t.Errorf("Attribute %s not found in stream", attr.Id)
 	}
 
 	if err := title.AddAttribute(attr); err == nil {
@@ -99,13 +99,13 @@ func TestAddStreamAttributeToTitleInfo(t *testing.T) {
 
 	if v, ok := title.Streams[1].Attributes[attr.Id]; ok {
 		if v != attr.Value {
-			t.Errorf("Attribute %d has value %s, expected %s", attr.Id, v, attr.Value)
+			t.Errorf("Attribute %s has value %s, expected %s", attr.Id, v, attr.Value)
 		}
 	} else {
-		t.Errorf("Attribute %d not found in stream", attr.Id)
+		t.Errorf("Attribute %s not found in stream", attr.Id)
 	}
 
-	if err := title.AddStreamAttribute(uint32(MAX_STREAM_COUNT+1), Attribute{AI_ANGLE_INFO, ""}); err == nil {
+	if err := title.AddStreamAttribute(MAX_STREAM_COUNT+1, Attribute{AI_ANGLE_INFO, ""}); err == nil {
 		t.Error("AddStreamAttribute did not return an error for out of bounds index")
 	}
 }
@@ -122,10 +122,10 @@ func TestAddAttributeToDiscInfo(t *testing.T) {
 
 	if v, ok := disc.Attributes[attr.Id]; ok {
 		if v != attr.Value {
-			t.Errorf("Attribute %d has value %s, expected %s", attr.Id, v, attr.Value)
+			t.Errorf("Attribute %s has value %s, expected %s", attr.Id, v, attr.Value)
 		}
 	} else {
-		t.Errorf("Attribute %d not found in stream", attr.Id)
+		t.Errorf("Attribute %s not found in stream", attr.Id)
 	}
 
 	if err := disc.AddAttribute(attr); err == nil {
@@ -154,13 +154,13 @@ func TestAddTitleAttributeToDiscInfo(t *testing.T) {
 
 	if v, ok := disc.Titles[1].Attributes[attr.Id]; ok {
 		if v != attr.Value {
-			t.Errorf("Attribute %d has value %s, expected %s", attr.Id, v, attr.Value)
+			t.Errorf("Attribute %s has value %s, expected %s", attr.Id, v, attr.Value)
 		}
 	} else {
-		t.Errorf("Attribute %d not found in title", attr.Id)
+		t.Errorf("Attribute %s not found in title", attr.Id)
 	}
 
-	if err := disc.AddTitleAttribute(uint32(MAX_TITLE_COUNT+1), Attribute{AI_ANGLE_INFO, ""}); err == nil {
+	if err := disc.AddTitleAttribute(MAX_TITLE_COUNT+1, Attribute{AI_ANGLE_INFO, ""}); err == nil {
 		t.Error("AddTitleAttribute did not return an error for out of bounds index")
 	}
 }
@@ -187,17 +187,17 @@ func TestAddStreamAttributeToDiscInfo(t *testing.T) {
 
 	if v, ok := disc.Titles[1].Streams[0].Attributes[attr.Id]; ok {
 		if v != attr.Value {
-			t.Errorf("Attribute %d has value %s, expected %s", attr.Id, v, attr.Value)
+			t.Errorf("Attribute %s has value %s, expected %s", attr.Id, v, attr.Value)
 		}
 	} else {
-		t.Errorf("Attribute %d not found in stream", attr.Id)
+		t.Errorf("Attribute %s not found in stream", attr.Id)
 	}
 
-	if err := disc.AddStreamAttribute(uint32(MAX_STREAM_COUNT+1), 0, Attribute{AI_ANGLE_INFO, ""}); err == nil {
+	if err := disc.AddStreamAttribute(MAX_STREAM_COUNT+1, 0, Attribute{AI_ANGLE_INFO, ""}); err == nil {
 		t.Error("AddStreamAttribute did not return an error for out of bounds index")
 	}
 
-	if err := disc.AddStreamAttribute(0, uint32(MAX_TITLE_COUNT+1), Attribute{AI_ANGLE_INFO, ""}); err == nil {
+	if err := disc.AddStreamAttribute(0, MAX_TITLE_COUNT+1, Attribute{AI_ANGLE_INFO, ""}); err == nil {
 		t.Error("AddStreamAttribute did not return an error for out of bounds index")
 	}
 }

@@ -36,12 +36,12 @@ const (
 	// MAX_STREAM_COUNT is maximum number of streams that can be extracted from a
 	// title. This isn't a limit imposed by MakeMKV, but rather a limit imposed by
 	// the application to protect against unexpected data causing problems.
-	MAX_STREAM_COUNT int32 = 100
+	MAX_STREAM_COUNT int = 100
 
 	// MAX_TITLE_COUNT is maximum number of titles that can be extracted from a
 	// disc. This isn't a limit imposed by MakeMKV, but rather a limit imposed by
 	// the application to protect against unexpected data causing problems.
-	MAX_TITLE_COUNT int32 = 100
+	MAX_TITLE_COUNT int = 100
 )
 
 // StreamInfo is stream (video, audio, or subtitle) information extracted by
@@ -93,8 +93,12 @@ func (t *TitleInfo) AddAttribute(attr Attribute) error {
 //
 // If the stream at index `stream` doesn't exist, it will be created as well as
 // any indexes in between the existing streams and the new stream index.
-func (t *TitleInfo) AddStreamAttribute(stream uint32, attr Attribute) error {
-	if stream >= uint32(MAX_STREAM_COUNT) {
+func (t *TitleInfo) AddStreamAttribute(stream int, attr Attribute) error {
+	if stream < 0 {
+		return errors.New("title index cannot be negative")
+	}
+
+	if stream >= MAX_STREAM_COUNT {
 		return errors.New("stream index exceeds stream count limit")
 	}
 
@@ -102,7 +106,7 @@ func (t *TitleInfo) AddStreamAttribute(stream uint32, attr Attribute) error {
 		t.Streams = make([]StreamInfo, 0)
 	}
 
-	if stream >= uint32(len(t.Streams)) {
+	if stream >= int(len(t.Streams)) {
 		for len(t.Streams) <= int(stream) {
 			t.Streams = append(t.Streams, StreamInfo{})
 		}
@@ -114,7 +118,7 @@ func (t *TitleInfo) AddStreamAttribute(stream uint32, attr Attribute) error {
 // DiscInfo is disc information extracted by MakeMKV's info command from a DVD
 // or Blu-ray.
 type DiscInfo struct {
-	TitleCount int32
+	TitleCount int
 	Attributes map[AttributeId]string
 	Titles     []TitleInfo
 }
@@ -137,7 +141,7 @@ func (d *DiscInfo) AddAttribute(attr Attribute) error {
 // AddTitleAttribute adds attribute `attr` to the stream at index `title` in the
 // title returning an error if the index exceeds the maximum stream count or if
 // the attribute already exists in the stream.
-func (d *DiscInfo) AddTitleAttribute(title uint32, attr Attribute) error {
+func (d *DiscInfo) AddTitleAttribute(title int, attr Attribute) error {
 	if err := d.ensureTitleExists(title); err != nil {
 		return err
 	} else {
@@ -148,7 +152,7 @@ func (d *DiscInfo) AddTitleAttribute(title uint32, attr Attribute) error {
 // AddStreamAttribute adds attribute `attr` to the stream at index `stream` in
 // the title at index `title` returning an error if the index exceeds the maximum
 // stream count or if the attribute already exists in the stream.
-func (d *DiscInfo) AddStreamAttribute(stream, title uint32, attr Attribute) error {
+func (d *DiscInfo) AddStreamAttribute(stream, title int, attr Attribute) error {
 	if err := d.ensureTitleExists(title); err != nil {
 		return err
 	} else {
@@ -156,8 +160,12 @@ func (d *DiscInfo) AddStreamAttribute(stream, title uint32, attr Attribute) erro
 	}
 }
 
-func (d *DiscInfo) ensureTitleExists(i uint32) error {
-	if i >= uint32(MAX_TITLE_COUNT) {
+func (d *DiscInfo) ensureTitleExists(title int) error {
+	if title < 0 {
+		return errors.New("title index cannot be negative")
+	}
+
+	if title >= MAX_TITLE_COUNT {
 		return errors.New("title index exceeds stream count limit")
 	}
 
@@ -165,8 +173,8 @@ func (d *DiscInfo) ensureTitleExists(i uint32) error {
 		d.Titles = make([]TitleInfo, 0)
 	}
 
-	if i >= uint32(len(d.Titles)) {
-		for len(d.Titles) <= int(i) {
+	if title >= len(d.Titles) {
+		for len(d.Titles) <= int(title) {
 			d.Titles = append(d.Titles, TitleInfo{})
 		}
 	}

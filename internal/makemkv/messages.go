@@ -50,7 +50,7 @@ type DiscInfoMessage struct {
 // DriveMessage represents a 'DRV' message from MakeMKV which contains
 // information about a disc drive.
 type DriveMessage struct {
-	Index     int32
+	Index     int
 	State     DriveState
 	Flags     MediaFlag
 	DriveName string
@@ -61,7 +61,7 @@ type DriveMessage struct {
 // GeneralMessage represents a 'MSG' message from MakeMKV which is a general
 // information message.
 type GeneralMessage struct {
-	Code    int32
+	Code    int
 	Message string
 }
 
@@ -69,8 +69,8 @@ type GeneralMessage struct {
 // MakeMKV. These messages contain the label for the current operation (PRGT)
 // and the current sub-operation (PTRC) progress.
 type ProgressTitleMessage struct {
-	Code int32
-	Id   int32
+	Code int
+	Id   int
 	Name string
 	Type rune
 }
@@ -79,17 +79,17 @@ type ProgressTitleMessage struct {
 // contains the progress values for the current operation and current
 // sub-operation.
 type ProgressValueMessage struct {
-	Current int32
-	Total   int32
-	Max     int32
+	Current int
+	Total   int
+	Max     int
 }
 
 // StreamInfoMessage represents a 'SINFO' message from MakeMKV which contains
 // information about an audio, subtitle, or video stream within a title on the
 // disc.
 type StreamInfoMessage struct {
-	Index      int32
-	TitleIndex int32
+	Index      int
+	TitleIndex int
 	Attribute  Attribute
 }
 
@@ -98,13 +98,13 @@ type StreamInfoMessage struct {
 // because some may be omitted based on configuration options like minimum
 // length.
 type TitleCountMessage struct {
-	Count int32
+	Count int
 }
 
 // TitleInfoMessage represents a 'TINFO' message from MakeMKV which contains
 // information about a title on the disc.
 type TitleInfoMessage struct {
-	Index     int32
+	Index     int
 	Attribute Attribute
 }
 
@@ -132,8 +132,12 @@ func ParseMessage(line string) (any, error) {
 		if err != nil {
 			return nil, errors.New("[CINFO] failed to parse attribute id")
 		}
+		attr, ok := GetAttributeId(int(id))
+		if !ok {
+			return nil, errors.New("[CINFO] failed to find attribute id")
+		}
 		value := strings.Trim(data[2], "\"")
-		return DiscInfoMessage{Attribute{AttributeId(id), value}}, nil
+		return DiscInfoMessage{Attribute{attr, value}}, nil
 	case "DRV":
 		if dataLength < 7 {
 			return nil, errors.New("[DRV] too few data items")
@@ -154,7 +158,7 @@ func ParseMessage(line string) (any, error) {
 		discName := strings.Trim(data[5], "\"")
 		device := strings.Trim(data[6], "\"")
 		return DriveMessage{
-			Index:     int32(index),
+			Index:     int(index),
 			State:     DriveState(state),
 			Flags:     MediaFlag(flags),
 			DriveName: driveName,
@@ -170,7 +174,7 @@ func ParseMessage(line string) (any, error) {
 			return nil, errors.New("[MSG] failed to parse code")
 		}
 		message := strings.Trim(data[3], "\"")
-		return GeneralMessage{int32(code), message}, nil
+		return GeneralMessage{int(code), message}, nil
 	case "PRGT":
 		if dataLength < 3 {
 			return nil, errors.New("[PRGT] too few data items")
@@ -184,7 +188,7 @@ func ParseMessage(line string) (any, error) {
 			return nil, errors.New("[PRGT] failed to parse code")
 		}
 		name := strings.Trim(data[2], "\"")
-		return ProgressTitleMessage{int32(code), int32(id), name, 'T'}, nil
+		return ProgressTitleMessage{int(code), int(id), name, 'T'}, nil
 	case "PRGC":
 		if dataLength < 3 {
 			return nil, errors.New("[PRGC] too few data items")
@@ -198,7 +202,7 @@ func ParseMessage(line string) (any, error) {
 			return nil, errors.New("[PRGT] failed to parse code")
 		}
 		name := strings.Trim(data[2], "\"")
-		return ProgressTitleMessage{int32(code), int32(id), name, 'C'}, nil
+		return ProgressTitleMessage{int(code), int(id), name, 'C'}, nil
 	case "PRGV":
 		if dataLength < 3 {
 			return nil, errors.New("[PRGV] too few data items")
@@ -215,7 +219,7 @@ func ParseMessage(line string) (any, error) {
 		if err != nil {
 			return nil, errors.New("[PRGV] failed to parse max value")
 		}
-		return ProgressValueMessage{int32(current), int32(total), int32(max)}, nil
+		return ProgressValueMessage{int(current), int(total), int(max)}, nil
 	case "SINFO":
 		if dataLength < 5 {
 			return nil, errors.New("[SINFO] too few data items")
@@ -232,8 +236,12 @@ func ParseMessage(line string) (any, error) {
 		if err != nil {
 			return nil, errors.New("[SINFO] failed to parse attribute id")
 		}
+		attr, ok := GetAttributeId(int(id))
+		if !ok {
+			return nil, errors.New("[SINFO] failed to find attribute id")
+		}
 		value := strings.Trim(data[4], "\"")
-		return StreamInfoMessage{int32(index), int32(title), Attribute{AttributeId(id), value}}, nil
+		return StreamInfoMessage{int(index), int(title), Attribute{attr, value}}, nil
 	case "TCOUNT":
 		if dataLength < 1 {
 			return nil, errors.New("[TCOUNT] too few data items")
@@ -242,7 +250,7 @@ func ParseMessage(line string) (any, error) {
 		if err != nil {
 			return nil, errors.New("[TCOUNT] failed to parse count")
 		}
-		return TitleCountMessage{int32(count)}, nil
+		return TitleCountMessage{int(count)}, nil
 	case "TINFO":
 		if dataLength < 4 {
 			return nil, errors.New("[TINFO] too few data items")
@@ -253,10 +261,14 @@ func ParseMessage(line string) (any, error) {
 		}
 		id, err := strconv.ParseInt(data[1], 10, 32)
 		if err != nil {
-			return nil, errors.New("[CINFO] failed to parse attribute id")
+			return nil, errors.New("[TINFO] failed to parse attribute id")
+		}
+		attr, ok := GetAttributeId(int(id))
+		if !ok {
+			return nil, errors.New("[TINFO] failed to find attribute id")
 		}
 		value := strings.Trim(data[3], "\"")
-		return TitleInfoMessage{int32(index), Attribute{AttributeId(id), value}}, nil
+		return TitleInfoMessage{int(index), Attribute{attr, value}}, nil
 	default:
 		return nil, errors.New("unrecognized message received")
 	}

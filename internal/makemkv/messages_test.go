@@ -44,7 +44,7 @@ func TestParseDiscInfoMessage(t *testing.T) {
 	}
 
 	if cinfo.Attribute.Id != AI_NAME {
-		t.Errorf("Attribute.Id = %d, expected 2", cinfo.Attribute.Id)
+		t.Errorf("Attribute.Id = %s, expected %s", cinfo.Attribute.Id, AI_NAME)
 	}
 
 	if cinfo.Attribute.Value != "The A-Team" {
@@ -206,7 +206,7 @@ func TestParseStreamInfoMessage(t *testing.T) {
 	}
 
 	if sinfo.Attribute.Id != AI_CODEC_LONG {
-		t.Errorf("Attribute.Id = %d, expected 7", sinfo.Attribute.Id)
+		t.Errorf("Attribute.Id = %s, expected %s", sinfo.Attribute.Id, AI_CODEC_LONG)
 	}
 
 	if sinfo.Attribute.Value != "Dolby Digital" {
@@ -246,7 +246,7 @@ func TestParseTitleInfoMessage(t *testing.T) {
 	}
 
 	if tinfo.Attribute.Id != AI_OUTPUT_FILE_NAME {
-		t.Errorf("Attribute.Id = %d, expected 27", tinfo.Attribute.Id)
+		t.Errorf("Attribute.Id = %s, expected %s", tinfo.Attribute.Id, AI_OUTPUT_FILE_NAME)
 	}
 
 	if tinfo.Attribute.Value != "The A-Team_t00.mkv" {
@@ -254,11 +254,14 @@ func TestParseTitleInfoMessage(t *testing.T) {
 	}
 }
 
+// TODO: Add bad data for out of range attribute id values (-/+) for CINFO, TINFO, and SINFO
 func TestParseMessageErrorHandling(t *testing.T) {
 	cases := []string{
 		"UNKNOWN:0,0,0",
 		"INVALID",
 		"CINFO:INVALID,0,\"The A-Team\"",
+		"CINFO:5000,0,\"The A-Team\"",
+		"CINFO:-500,0,\"The A-Team\"",
 		"CINFO:2,0",
 		"DRV:INVALID,1,999,12,\"4815162342\",\"A_TEAM\",\"/dev/sr1\"",
 		"DRV:2,INVALID,999,12,\"4815162342\",\"A_TEAM\",\"/dev/sr1\"",
@@ -279,11 +282,15 @@ func TestParseMessageErrorHandling(t *testing.T) {
 		"SINFO:INVALID,1,7,0,\"Dolby Digital\"",
 		"SINFO:5,INVALID,7,0,\"Dolby Digital\"",
 		"SINFO:5,1,INVALID,0,\"Dolby Digital\"",
+		"SINFO:5,1,3000,0,\"Dolby Digital\"",
+		"SINFO:5,1,-300,0,\"Dolby Digital\"",
 		"SINFO:5",
 		"TCOUNT:INVALID",
 		"TCOUNT:",
 		"TINFO:INVALID,27,0,\"The A-Team_t00.mkv\"",
 		"TINFO:3,INVALID,0,\"The A-Team_t00.mkv\"",
+		"TINFO:3,2000,0,\"The A-Team_t00.mkv\"",
+		"TINFO:3,-200,0,\"The A-Team_t00.mkv\"",
 		"TINFO:3",
 	}
 

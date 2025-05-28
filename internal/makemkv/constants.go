@@ -67,61 +67,122 @@ const (
 // AttributeId is an attribute type identifier for attributes reported by
 // MakeMKV when reporting information about a disc, its titles, or a title's
 // audio/video streams.
-//
-// The values for the AttributeId constants come from the MakeMKV v1.17.7
-// source code in header file apdefs.h
-type AttributeId int32
+type AttributeId string
 
 const (
-	AI_UNKNOWN                          AttributeId = 0
-	AI_TYPE                             AttributeId = 1
-	AI_NAME                             AttributeId = 2
-	AI_LANG_CODE                        AttributeId = 3
-	AI_LANG_NAME                        AttributeId = 4
-	AI_CODEC_ID                         AttributeId = 5
-	AI_CODEC_SHORT                      AttributeId = 6
-	AI_CODEC_LONG                       AttributeId = 7
-	AI_CHAPTER_COUNT                    AttributeId = 8
-	AI_DURATION                         AttributeId = 9
-	AI_DISK_SIZE                        AttributeId = 10
-	AI_DISK_SIZE_BYTES                  AttributeId = 11
-	AI_STREAM_TYPE_EXTENSION            AttributeId = 12
-	AI_BITRATE                          AttributeId = 13
-	AI_AUDIO_CHANNELS_COUNT             AttributeId = 14
-	AI_ANGLE_INFO                       AttributeId = 15
-	AI_SOURCE_FILE_NAME                 AttributeId = 16
-	AI_AUDIO_SAMPLE_RATE                AttributeId = 17
-	AI_AUDIO_SAMPLE_SIZE                AttributeId = 18
-	AI_VIDEO_SIZE                       AttributeId = 19
-	AI_VIDEO_ASPECT_RATIO               AttributeId = 20
-	AI_VIDEO_FRAME_RATE                 AttributeId = 21
-	AI_STREAM_FLAGS                     AttributeId = 22
-	AI_DATE_TIME                        AttributeId = 23
-	AI_ORIGINAL_TITLE_ID                AttributeId = 24
-	AI_SEGMENTS_COUNT                   AttributeId = 25
-	AI_SEGMENTS_MAP                     AttributeId = 26
-	AI_OUTPUT_FILE_NAME                 AttributeId = 27
-	AI_METADATA_LANGUAGE_CODE           AttributeId = 28
-	AI_METADATA_LANGUAGE_NAME           AttributeId = 29
-	AI_TREE_INFO                        AttributeId = 30
-	AI_PANEL_TITLE                      AttributeId = 31
-	AI_VOLUME_NAME                      AttributeId = 32
-	AI_ORDER_WEIGHT                     AttributeId = 33
-	AI_OUTPUT_FORMAT                    AttributeId = 34
-	AI_OUTPUT_FORMAT_DESCRIPTION        AttributeId = 35
-	AI_SEAMLESS_INFO                    AttributeId = 36
-	AI_PANEL_TEXT                       AttributeId = 37
-	AI_MKV_FLAGS                        AttributeId = 38
-	AI_MKV_FLAGS_TEXT                   AttributeId = 39
-	AI_AUDIO_CHANNEL_LAYOUT_NAME        AttributeId = 40
-	AI_OUTPUT_CODEC_SHORT               AttributeId = 41
-	AI_OUTPUT_CONVERSION_TYPE           AttributeId = 42
-	AI_OUTPUT_AUDIO_SAMPLE_RATE         AttributeId = 43
-	AI_OUTPUT_AUDIO_SAMPLE_SIZE         AttributeId = 44
-	AI_OUTPUT_AUDIO_CHANNELS_COUNT      AttributeId = 45
-	AI_OUTPUT_AUDIO_CHANNEL_LAYOUT_NAME AttributeId = 46
-	AI_OUTPUT_AUDIO_CHANNEL_LAYOUT      AttributeId = 47
-	AI_OUTPUT_AUDIO_MIX_DESCRIPTION     AttributeId = 48
-	AI_COMMENT                          AttributeId = 49
-	AI_OFFSET_SEQUENCE_ID               AttributeId = 50
+	AI_UNKNOWN                          AttributeId = "UNKNOWN"                          // 0
+	AI_TYPE                             AttributeId = "TYPE"                             // 1
+	AI_NAME                             AttributeId = "NAME"                             // 2
+	AI_LANG_CODE                        AttributeId = "LANG_CODE"                        // 3
+	AI_LANG_NAME                        AttributeId = "LANG_NAME"                        // 4
+	AI_CODEC_ID                         AttributeId = "CODEC_ID"                         // 5
+	AI_CODEC_SHORT                      AttributeId = "CODEC_SHORT"                      // 6
+	AI_CODEC_LONG                       AttributeId = "CODEC_LONG"                       // 7
+	AI_CHAPTER_COUNT                    AttributeId = "CHAPTER_COUNT"                    // 8
+	AI_DURATION                         AttributeId = "DURATION"                         // 9
+	AI_DISK_SIZE                        AttributeId = "DISK_SIZE"                        // 10
+	AI_DISK_SIZE_BYTES                  AttributeId = "DISK_SIZE_BYTES"                  // 11
+	AI_STREAM_TYPE_EXTENSION            AttributeId = "STREAM_TYPE_EXTENSION"            // 12
+	AI_BITRATE                          AttributeId = "BITRATE"                          // 13
+	AI_AUDIO_CHANNELS_COUNT             AttributeId = "AUDIO_CHANNELS_COUNT"             // 14
+	AI_ANGLE_INFO                       AttributeId = "ANGLE_INFO"                       // 15
+	AI_SOURCE_FILE_NAME                 AttributeId = "SOURCE_FILE_NAME"                 // 16
+	AI_AUDIO_SAMPLE_RATE                AttributeId = "AUDIO_SAMPLE_RATE"                // 17
+	AI_AUDIO_SAMPLE_SIZE                AttributeId = "AUDIO_SAMPLE_SIZE"                // 18
+	AI_VIDEO_SIZE                       AttributeId = "VIDEO_SIZE"                       // 19
+	AI_VIDEO_ASPECT_RATIO               AttributeId = "VIDEO_ASPECT_RATIO"               // 20
+	AI_VIDEO_FRAME_RATE                 AttributeId = "VIDEO_FRAME_RATE"                 // 21
+	AI_STREAM_FLAGS                     AttributeId = "STREAM_FLAGS"                     // 22
+	AI_DATE_TIME                        AttributeId = "DATE_TIME"                        // 23
+	AI_ORIGINAL_TITLE_ID                AttributeId = "ORIGINAL_TITLE_ID"                // 24
+	AI_SEGMENTS_COUNT                   AttributeId = "SEGMENTS_COUNT"                   // 25
+	AI_SEGMENTS_MAP                     AttributeId = "SEGMENTS_MAP"                     // 26
+	AI_OUTPUT_FILE_NAME                 AttributeId = "OUTPUT_FILE_NAME"                 // 27
+	AI_METADATA_LANGUAGE_CODE           AttributeId = "METADATA_LANGUAGE_CODE"           // 28
+	AI_METADATA_LANGUAGE_NAME           AttributeId = "METADATA_LANGUAGE_NAME"           // 29
+	AI_TREE_INFO                        AttributeId = "TREE_INFO"                        // 30
+	AI_PANEL_TITLE                      AttributeId = "PANEL_TITLE"                      // 31
+	AI_VOLUME_NAME                      AttributeId = "VOLUME_NAME"                      // 32
+	AI_ORDER_WEIGHT                     AttributeId = "ORDER_WEIGHT"                     // 33
+	AI_OUTPUT_FORMAT                    AttributeId = "OUTPUT_FORMAT"                    // 34
+	AI_OUTPUT_FORMAT_DESCRIPTION        AttributeId = "OUTPUT_FORMAT_DESCRIPTION"        // 35
+	AI_SEAMLESS_INFO                    AttributeId = "SEAMLESS_INFO"                    // 36
+	AI_PANEL_TEXT                       AttributeId = "PANEL_TEXT"                       // 37
+	AI_MKV_FLAGS                        AttributeId = "MKV_FLAGS"                        // 38
+	AI_MKV_FLAGS_TEXT                   AttributeId = "MKV_FLAGS_TEXT"                   // 39
+	AI_AUDIO_CHANNEL_LAYOUT_NAME        AttributeId = "AUDIO_CHANNEL_LAYOUT_NAME"        // 40
+	AI_OUTPUT_CODEC_SHORT               AttributeId = "OUTPUT_CODEC_SHORT"               // 41
+	AI_OUTPUT_CONVERSION_TYPE           AttributeId = "OUTPUT_CONVERSION_TYPE"           // 42
+	AI_OUTPUT_AUDIO_SAMPLE_RATE         AttributeId = "OUTPUT_AUDIO_SAMPLE_RATE"         // 43
+	AI_OUTPUT_AUDIO_SAMPLE_SIZE         AttributeId = "OUTPUT_AUDIO_SAMPLE_SIZE"         // 44
+	AI_OUTPUT_AUDIO_CHANNELS_COUNT      AttributeId = "OUTPUT_AUDIO_CHANNELS_COUNT"      // 45
+	AI_OUTPUT_AUDIO_CHANNEL_LAYOUT_NAME AttributeId = "OUTPUT_AUDIO_CHANNEL_LAYOUT_NAME" // 46
+	AI_OUTPUT_AUDIO_CHANNEL_LAYOUT      AttributeId = "OUTPUT_AUDIO_CHANNEL_LAYOUT"      // 47
+	AI_OUTPUT_AUDIO_MIX_DESCRIPTION     AttributeId = "OUTPUT_AUDIO_MIX_DESCRIPTION"     // 48
+	AI_COMMENT                          AttributeId = "COMMENT"                          // 49
+	AI_OFFSET_SEQUENCE_ID               AttributeId = "OFFSET_SEQUENCE_ID"               // 50
 )
+
+// attributeTable maps the values reported by MakeMKV for attribute IDs to one
+// of the AttributeId constants. The values for the AttributeId constants come
+// from the MakeMKV v1.17.7 source code in header file apdefs.h
+var attributeTable = map[int]AttributeId{
+	0:  AI_UNKNOWN,
+	1:  AI_TYPE,
+	2:  AI_NAME,
+	3:  AI_LANG_CODE,
+	4:  AI_LANG_NAME,
+	5:  AI_CODEC_ID,
+	6:  AI_CODEC_SHORT,
+	7:  AI_CODEC_LONG,
+	8:  AI_CHAPTER_COUNT,
+	9:  AI_DURATION,
+	10: AI_DISK_SIZE,
+	11: AI_DISK_SIZE_BYTES,
+	12: AI_STREAM_TYPE_EXTENSION,
+	13: AI_BITRATE,
+	14: AI_AUDIO_CHANNELS_COUNT,
+	15: AI_ANGLE_INFO,
+	16: AI_SOURCE_FILE_NAME,
+	17: AI_AUDIO_SAMPLE_RATE,
+	18: AI_AUDIO_SAMPLE_SIZE,
+	19: AI_VIDEO_SIZE,
+	20: AI_VIDEO_ASPECT_RATIO,
+	21: AI_VIDEO_FRAME_RATE,
+	22: AI_STREAM_FLAGS,
+	23: AI_DATE_TIME,
+	24: AI_ORIGINAL_TITLE_ID,
+	25: AI_SEGMENTS_COUNT,
+	26: AI_SEGMENTS_MAP,
+	27: AI_OUTPUT_FILE_NAME,
+	28: AI_METADATA_LANGUAGE_CODE,
+	29: AI_METADATA_LANGUAGE_NAME,
+	30: AI_TREE_INFO,
+	31: AI_PANEL_TITLE,
+	32: AI_VOLUME_NAME,
+	33: AI_ORDER_WEIGHT,
+	34: AI_OUTPUT_FORMAT,
+	35: AI_OUTPUT_FORMAT_DESCRIPTION,
+	36: AI_SEAMLESS_INFO,
+	37: AI_PANEL_TEXT,
+	38: AI_MKV_FLAGS,
+	39: AI_MKV_FLAGS_TEXT,
+	40: AI_AUDIO_CHANNEL_LAYOUT_NAME,
+	41: AI_OUTPUT_CODEC_SHORT,
+	42: AI_OUTPUT_CONVERSION_TYPE,
+	43: AI_OUTPUT_AUDIO_SAMPLE_RATE,
+	44: AI_OUTPUT_AUDIO_SAMPLE_SIZE,
+	45: AI_OUTPUT_AUDIO_CHANNELS_COUNT,
+	46: AI_OUTPUT_AUDIO_CHANNEL_LAYOUT_NAME,
+	47: AI_OUTPUT_AUDIO_CHANNEL_LAYOUT,
+	48: AI_OUTPUT_AUDIO_MIX_DESCRIPTION,
+	49: AI_COMMENT,
+	50: AI_OFFSET_SEQUENCE_ID,
+}
+
+// GetAttributeId returns the AttributeId associated with value `v` outputted by
+// MakeMKV.
+func GetAttributeId(v int) (AttributeId, bool) {
+	id, ok := attributeTable[v]
+	return id, ok
+}
