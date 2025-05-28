@@ -1,0 +1,5 @@
+# Ignore the executable
+artie-copy
+
+# Ignore any configuration files 
+*.toml

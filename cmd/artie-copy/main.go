@@ -28,8 +28,28 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log/slog"
+	"os"
+
+	"github.com/kfisher/artie-copy-service/internal/cfg"
+)
 
 func main() {
-	fmt.Println("Hello, Friend!")
+	if len(os.Args) < 2 {
+		fmt.Println("usage: artie-copy CONFIG")
+		return
+	}
+
+	cfgPath := os.Args[1]
+	if err := cfg.LoadConfig(cfgPath); err != nil {
+		slog.Error("Failed to load configuration", "path", cfgPath, "error", err)
+		return
+	}
+
+	if !cfg.Config.IsValid() {
+		slog.Error("Configuration is invalid.")
+		cfg.Config.LogValidationErrors()
+	}
 }
