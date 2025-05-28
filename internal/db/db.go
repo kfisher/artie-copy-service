@@ -26,42 +26,29 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package main
+// Package db handles database related operations.
+package db
 
 import (
-	"fmt"
-	"log/slog"
-	"os"
+	"context"
 
-	"github.com/kfisher/artie-copy-service/internal/cfg"
-	"github.com/kfisher/artie-copy-service/internal/db"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("usage: artie-copy CONFIG")
-		return
-	}
+var Pool *pgxpool.Pool = nil
 
-	cfgPath := os.Args[1]
-	slog.Info("Loading config", "path", cfgPath)
-	if err := cfg.LoadConfig(cfgPath); err != nil {
-		slog.Error("Failed to load configuration", "path", cfgPath, "error", err)
-		return
+// InitPool initializes the connection pool.
+func InitPool() error {
+	pool, err := pgxpool.New(context.Background(), "dbname=artie")
+	if err != nil {
+		return err
+	} else {
+		Pool = pool
+		return nil
 	}
+}
 
-	if !cfg.Config.IsValid() {
-		slog.Error("Configuration is invalid.")
-		cfg.Config.LogValidationErrors()
-		return
-	}
-
-	slog.Info("Initializing database pool.")
-	if err := db.InitPool(); err != nil {
-		slog.Error("Failed to initialize the database pool.", "error", err)
-		return
-	}
-	defer db.Close()
-
-	slog.Info("Service started.", "drive", cfg.Config.Serial)
+// Close
+func Close() {
+	Pool.Close()
 }

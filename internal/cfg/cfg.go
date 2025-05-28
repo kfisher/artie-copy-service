@@ -121,8 +121,6 @@ func (c *ServiceConfig) LogValidationErrors() {
 // Load config loads the configuration options provided by the TOML file `path`
 // and updates the service's global config (see Config).
 func LoadConfig(path string) error {
-	slog.Info("Loading config", "path", path)
-
 	file, err := os.Open(path)
 	if err != nil {
 		return errors.New("failed to open config file")
@@ -137,8 +135,6 @@ func LoadConfig(path string) error {
 	if err := toml.Unmarshal(bs, &Config); err != nil {
 		return errors.New("failed to parse config file")
 	}
-
-	slog.Info("Config loaded", "config", Config)
 
 	return nil
 }
