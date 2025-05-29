@@ -29,15 +29,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
 
+	"github.com/kfisher/artie-copy-service/internal/blk"
 	"github.com/kfisher/artie-copy-service/internal/cfg"
 	"github.com/kfisher/artie-copy-service/internal/db"
 )
 
 func main() {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+
 	if len(os.Args) < 2 {
 		fmt.Println("usage: artie-copy CONFIG")
 		return
@@ -63,5 +67,16 @@ func main() {
 	}
 	defer db.Close()
 
-	slog.Info("Service started.", "drive", cfg.Config.Serial)
+	device, err := blk.GetBlockDevice(cfg.Config.Serial)
+	if err != nil {
+		slog.Error("Failed to get device information.", "error", err)
+		return
+	}
+
+	if err = db.InitOpticalDriveInfo(context.Background(), cfg.Config.Serial); err != nil {
+		slog.Error("Failed to add/check drive info in the database.", "error", err)
+		return
+	}
+
+	slog.Info("Service initialized.", "serial", cfg.Config.Serial, "device", device.Name)
 }

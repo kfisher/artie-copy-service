@@ -30,6 +30,8 @@
 // such as optical drives.
 package blk
 
+import "errors"
+
 // BlockDevice is a block device reported by the os.
 type BlockDevice struct {
 	Name   string `json:"name"`   // Device name. e.g. "/dev/sr0"
@@ -37,3 +39,7 @@ type BlockDevice struct {
 	Label  string `json:"label"`  // Device label. Changes based on disc for optical drives.
 	Type   string `json:"type"`   // Device type. e.g. "rom", "disc"
 }
+
+var (
+	ErrDeviceNotFound = errors.New("device not found")
+)

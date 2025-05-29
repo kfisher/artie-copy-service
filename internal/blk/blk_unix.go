@@ -32,8 +32,7 @@ package blk
 
 import (
 	"encoding/json"
-	"errors"
-	"log/slog"
+	"fmt"
 	"os/exec"
 )
 
@@ -60,20 +59,22 @@ func (b *BlockDeviceList) FindBySerial(sn string) (BlockDevice, bool) {
 }
 
 // GetBlockDevice gets block device information for the device with serial
-// number `sn`.
-func GetBlockDevice(sn string) (BlockDevice, bool, error) {
+// number `sn`. If the device isn't found, ErrDeviceNotFound is returned.
+func GetBlockDevice(sn string) (BlockDevice, error) {
 	cmd := exec.Command("lsblk", "--list", "--paths", "--json", "--output", "NAME,SERIAL,LABEL,TYPE")
 	out, err := cmd.Output()
 	if err != nil {
-		slog.Warn("lsblk exited with an error status", "command", cmd.Args)
-		return BlockDevice{}, false, errors.New("lsblk command failed")
+		return BlockDevice{}, fmt.Errorf("failed to get block device: %w", err)
 	}
 
 	var blkList BlockDeviceList
 	if err := json.Unmarshal(out, &blkList); err != nil {
-		return BlockDevice{}, false, errors.New("failed to parse lsblk output")
+		return BlockDevice{}, fmt.Errorf("failed to parse lsblk output: %w", err)
 	}
 
-	dev, found := blkList.FindBySerial(sn)
-	return dev, found, nil
+	if dev, found := blkList.FindBySerial(sn); found {
+		return dev, nil
+	} else {
+		return BlockDevice{}, ErrDeviceNotFound
+	}
 }

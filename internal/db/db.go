@@ -31,7 +31,11 @@ package db
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log/slog"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -51,4 +55,33 @@ func InitPool() error {
 // Close
 func Close() {
 	Pool.Close()
+}
+
+// InitOpticalDriveInfo checks the database to see if there is an entry for `sn`
+// and adds if not.
+func InitOpticalDriveInfo(ctx context.Context, sn string) error {
+	stmt := "SELECT id FROM optical_drive WHERE serial_number=@sn"
+	args := pgx.NamedArgs{"sn": sn}
+	var id int
+	err := Pool.QueryRow(ctx, stmt, args).Scan(&id)
+	if err == nil {
+		slog.Debug("Optical drive information already in database.", "id", id)
+		return nil
+	} else if err != pgx.ErrNoRows {
+		return fmt.Errorf("query row failed: %w", err)
+	}
+
+	slog.Debug("Adding optical drive info to database.")
+
+	stmt = "INSERT INTO optical_drive (serial_number) VALUES (@sn)"
+	tag, err := Pool.Exec(ctx, stmt, args)
+	if err != nil {
+		return fmt.Errorf("insert failed: %w", err)
+	}
+
+	if tag.RowsAffected() != 1 {
+		return errors.New("insert affected more than 1 row")
+	}
+
+	return nil
 }
