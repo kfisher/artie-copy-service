@@ -37,13 +37,14 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/kfisher/artie-copy-service/internal/cfg"
 )
 
 var Pool *pgxpool.Pool = nil
 
 // InitPool initializes the connection pool.
 func InitPool() error {
-	pool, err := pgxpool.New(context.Background(), "dbname=artie")
+	pool, err := pgxpool.New(context.Background(), cfg.Config.ConnStr)
 	if err != nil {
 		return err
 	} else {

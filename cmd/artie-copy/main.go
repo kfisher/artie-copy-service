@@ -40,8 +40,6 @@ import (
 )
 
 func main() {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
-
 	if len(os.Args) < 2 {
 		fmt.Println("usage: artie-copy CONFIG")
 		return
@@ -59,6 +57,8 @@ func main() {
 		cfg.Config.LogValidationErrors()
 		return
 	}
+
+	slog.SetLogLoggerLevel(cfg.LogLevelMap[cfg.Config.LogLevel])
 
 	slog.Info("Initializing database pool.")
 	if err := db.InitPool(); err != nil {

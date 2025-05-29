@@ -30,7 +30,7 @@
 package cfg
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -38,8 +38,18 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
+// TODO: This file is starting to get a little crunchy. May want to rethink the
+// approach.
+
 // Config contains the configuration data for the service.
 var Config ServiceConfig
+
+var LogLevelMap = map[string]slog.Level{
+	"debug":   slog.LevelDebug,
+	"info":    slog.LevelInfo,
+	"warning": slog.LevelWarn,
+	"error":   slog.LevelError,
+}
 
 // ServiceConfig defines the configuration options for the service.
 type ServiceConfig struct {
@@ -49,6 +59,8 @@ type ServiceConfig struct {
 	Port      int32  `toml:"port"`
 	Directory string `toml:"working_directory"`
 	MakeMKV   string `toml:"makemkv_exe"`
+	ConnStr   string `toml:"connection_string"`
+	LogLevel  string `toml:"log_level"`
 }
 
 // IsValid checks if the configuration is valid.
@@ -84,6 +96,16 @@ func (c *ServiceConfig) IsValid() bool {
 		return false
 	}
 
+	if c.ConnStr == "" {
+		return false
+	}
+
+	if c.LogLevel != "" {
+		if _, ok := LogLevelMap[c.LogLevel]; !ok {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -116,6 +138,16 @@ func (c *ServiceConfig) LogValidationErrors() {
 	if c.MakeMKV == "" {
 		slog.Error("makemkv_exe is required and cannot be empty")
 	}
+
+	if c.ConnStr == "" {
+		slog.Error("connection_string is required and cannot be empty")
+	}
+
+	if c.LogLevel != "" {
+		if _, ok := LogLevelMap[c.LogLevel]; !ok {
+			slog.Error("log_level value is invalid. Must be debug, info, warning, or error")
+		}
+	}
 }
 
 // Load config loads the configuration options provided by the TOML file `path`
@@ -123,17 +155,21 @@ func (c *ServiceConfig) LogValidationErrors() {
 func LoadConfig(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return errors.New("failed to open config file")
+		return fmt.Errorf("failed to open config file: %w", err)
 	}
 	defer file.Close()
 
 	bs, err := io.ReadAll(file)
 	if err != nil {
-		return errors.New("failed to read config file")
+		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	if err := toml.Unmarshal(bs, &Config); err != nil {
-		return errors.New("failed to parse config file")
+		return fmt.Errorf("failed to parse config file: %w", err)
+	}
+
+	if Config.LogLevel == "" {
+		Config.LogLevel = "info"
 	}
 
 	return nil
