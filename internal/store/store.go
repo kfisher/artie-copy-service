@@ -26,58 +26,54 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// Package db handles database related operations.
-package db
+// Package store stores service data that needs to be read and written across
+// multiple goroutines, mainly background workers and HTTP requests.
+package store
 
 import (
-	"context"
-	"fmt"
-	"log/slog"
+	"sync"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/kfisher/artie-copy-service/internal/cfg"
+	"github.com/kfisher/artie-copy-service/internal/models"
 )
 
-var Pool *pgxpool.Pool = nil
+var store Store
 
-// InitPool initializes the connection pool.
-func InitPool() error {
-	pool, err := pgxpool.New(context.Background(), cfg.Db.ConnStr)
-	if err != nil {
-		return err
-	} else {
-		Pool = pool
-		return nil
-	}
+type Store struct {
+	mu sync.RWMutex
+	od models.OpticalDrive
 }
 
-// Close
-func Close() {
-	Pool.Close()
+// GetOpticalDrive returns the entire OpticalDrive object.
+func GetOpticalDrive() models.OpticalDrive {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
+
+	return store.od
 }
 
-// InitOpticalDriveInfo checks the database to see if there is an entry for `sn`
-// and adds if not.
-func InitOpticalDriveInfo(ctx context.Context, sn string) (int, error) {
-	stmt := "SELECT id FROM optical_drive WHERE serial_number=@sn"
-	args := pgx.NamedArgs{"sn": sn}
-	var id int
-	err := Pool.QueryRow(ctx, stmt, args).Scan(&id)
-	if err == nil {
-		slog.Debug("Optical drive information already in database.", "id", id)
-		return id, nil
-	} else if err != pgx.ErrNoRows {
-		return 0, fmt.Errorf("query row failed: %w", err)
-	}
+// GetState returns the current state of the optical drive.
+func GetState() models.OpticalDriveState {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
 
-	slog.Debug("Adding optical drive info to database.")
+	return store.od.State
+}
 
-	stmt = "INSERT INTO optical_drive (serial_number) VALUES (@sn) RETURNING id"
-	err = Pool.QueryRow(ctx, stmt, args).Scan(&id)
-	if err != nil {
-		return 0, fmt.Errorf("insert failed: %w", err)
-	}
+// Set updates the OpticalDrive object in the store. This should generally only
+// be used during initialization since most of the fields will not change. Use
+// the dedicated field setters. If a setter doesn't exist, then it probably
+// shouldn't be changed after initialization.
+func Set(od models.OpticalDrive) {
+	store.mu.Lock()
+	defer store.mu.Unlock()
 
-	return id, nil
+	store.od = od
+}
+
+// SetState updates the state of the optical drive in the store.
+func SetState(status models.OpticalDriveState) {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
+	store.od.State = status
 }

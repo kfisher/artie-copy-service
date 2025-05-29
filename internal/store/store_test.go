@@ -26,58 +26,58 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// Package db handles database related operations.
-package db
+package store_test
 
 import (
-	"context"
-	"fmt"
-	"log/slog"
+	"testing"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/kfisher/artie-copy-service/internal/cfg"
+	"github.com/kfisher/artie-copy-service/internal/models"
+	"github.com/kfisher/artie-copy-service/internal/store"
 )
 
-var Pool *pgxpool.Pool = nil
+func TestState(t *testing.T) {
+	store.Set(models.OpticalDrive{
+		Id:           1337,
+		Name:         "Drive A",
+		Host:         "localhost",
+		DeviceName:   "/dev/sr0",
+		SerialNumber: "4-8-15-16-23-42",
+		State:        models.DriveStateIdle,
+		DiscLabel:    "LOST_S1",
+	})
 
-// InitPool initializes the connection pool.
-func InitPool() error {
-	pool, err := pgxpool.New(context.Background(), cfg.Db.ConnStr)
-	if err != nil {
-		return err
-	} else {
-		Pool = pool
-		return nil
+	od := store.GetOpticalDrive()
+	if od.Id != 1337 {
+		t.Error("Expected ID to be 1337, got:", od.Id)
 	}
-}
-
-// Close
-func Close() {
-	Pool.Close()
-}
-
-// InitOpticalDriveInfo checks the database to see if there is an entry for `sn`
-// and adds if not.
-func InitOpticalDriveInfo(ctx context.Context, sn string) (int, error) {
-	stmt := "SELECT id FROM optical_drive WHERE serial_number=@sn"
-	args := pgx.NamedArgs{"sn": sn}
-	var id int
-	err := Pool.QueryRow(ctx, stmt, args).Scan(&id)
-	if err == nil {
-		slog.Debug("Optical drive information already in database.", "id", id)
-		return id, nil
-	} else if err != pgx.ErrNoRows {
-		return 0, fmt.Errorf("query row failed: %w", err)
+	if od.Name != "Drive A" {
+		t.Error("Expected Name to be 'Drive A', got:", od.Name)
 	}
-
-	slog.Debug("Adding optical drive info to database.")
-
-	stmt = "INSERT INTO optical_drive (serial_number) VALUES (@sn) RETURNING id"
-	err = Pool.QueryRow(ctx, stmt, args).Scan(&id)
-	if err != nil {
-		return 0, fmt.Errorf("insert failed: %w", err)
+	if od.Host != "localhost" {
+		t.Error("Expected Host to be 'localhost', got:", od.Host)
+	}
+	if od.DeviceName != "/dev/sr0" {
+		t.Error("Expected DeviceName to be '/dev/sr0', got:", od.DeviceName)
+	}
+	if od.SerialNumber != "4-8-15-16-23-42" {
+		t.Error("Expected SerialNumber to be '4-8-15-16-23-42', got:", od.SerialNumber)
+	}
+	if od.State != models.DriveStateIdle {
+		t.Error("Expected State to be Idle, got:", od.State)
+	}
+	if od.DiscLabel != "LOST_S1" {
+		t.Error("Expected DiscLabel to be 'LOST_S1', got:", od.DiscLabel)
 	}
 
-	return id, nil
+	if store.GetState() != models.DriveStateIdle {
+		t.Error("Expected state to be Idle, got:", store.GetState())
+	}
+
+	store.SetState(models.DriveStateCopying)
+	if store.GetOpticalDrive().State != models.DriveStateCopying {
+		t.Error("Expected state to be Copying, got:", store.GetOpticalDrive().State)
+	}
+	if store.GetState() != models.DriveStateCopying {
+		t.Error("Expected state to be Copying, got:", store.GetState())
+	}
 }

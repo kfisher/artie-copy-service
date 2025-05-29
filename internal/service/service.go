@@ -37,7 +37,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kfisher/artie-copy-service/internal/cfg"
-	"github.com/kfisher/artie-copy-service/internal/models"
+	"github.com/kfisher/artie-copy-service/internal/store"
 )
 
 // Run configures the routes and starts the HTTP server.
@@ -73,20 +73,8 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 func getStatus(w http.ResponseWriter, r *http.Request) {
-	// TODO[HIGH]: Need a proper implementation for this. Still not sure
-	// where all this information will be stored or fetched.
-	status := models.OpticalDrive{
-		Id:           0,
-		Name:         cfg.Device.Name,
-		Host:         "",
-		DeviceName:   "",
-		SerialNumber: cfg.Device.Serial,
-		State:        models.DriveStateIdle,
-		DiscLabel:    "",
-	}
-
+	status := store.GetOpticalDrive()
 	w.Header().Set("Content-Type", "application/json")
-
 	json.NewEncoder(w).Encode(status)
 }
 

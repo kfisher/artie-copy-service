@@ -26,7 +26,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// Package cfg handles managing configuration information.
+// Package cfg handles managing configuration information. Configuration is
+// expected to be set during startup and not change afterwards. Therefore, they
+// should be safe to read in any routine without the need for a synchronization
+// method such as mutexes.
 package cfg
 
 import (

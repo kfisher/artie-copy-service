@@ -41,7 +41,11 @@ package models
 type OpticalDriveState string
 
 const (
-	DriveStateIdle = "idle"
+	// TODO: DOC
+	DriveStateIdle OpticalDriveState = "idle"
+
+	// TODO: DOC
+	DriveStateCopying OpticalDriveState = "copying"
 )
 
 // OpticalDrive represents an optical drive.

@@ -37,7 +37,9 @@ import (
 	"github.com/kfisher/artie-copy-service/internal/blk"
 	"github.com/kfisher/artie-copy-service/internal/cfg"
 	"github.com/kfisher/artie-copy-service/internal/db"
+	"github.com/kfisher/artie-copy-service/internal/models"
 	"github.com/kfisher/artie-copy-service/internal/service"
+	"github.com/kfisher/artie-copy-service/internal/store"
 )
 
 func main() {
@@ -73,11 +75,31 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = db.InitOpticalDriveInfo(context.Background(), cfg.Device.Serial); err != nil {
+	id, err := db.InitOpticalDriveInfo(context.Background(), cfg.Device.Serial)
+	if err != nil {
 		fmt.Printf("Failed to update drive info.\n")
 		fmt.Printf("error: %s\n", err)
 		os.Exit(1)
 	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		fmt.Printf("Failed to get hostname.\n")
+		fmt.Printf("error: %s\n", err)
+		os.Exit(1)
+	}
+
+	od := models.OpticalDrive{
+		Id:           id,
+		Name:         cfg.Device.Name,
+		Host:         hostname,
+		DeviceName:   device.Name,
+		SerialNumber: cfg.Device.Serial,
+		State:        models.DriveStateIdle,
+		DiscLabel:    device.Label,
+	}
+
+	store.Set(od)
 
 	slog.Info("Starting service.", "serial", cfg.Device.Serial, "device", device.Name, "address", cfg.Server.Address, "port", cfg.Server.Port)
 
