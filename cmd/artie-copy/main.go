@@ -37,9 +37,13 @@ import (
 	"github.com/kfisher/artie-copy-service/internal/blk"
 	"github.com/kfisher/artie-copy-service/internal/cfg"
 	"github.com/kfisher/artie-copy-service/internal/db"
+	"github.com/kfisher/artie-copy-service/internal/service"
 )
 
 func main() {
+	// TODO: Add a command line flag to set the log level.
+	slog.SetLogLoggerLevel(slog.LevelInfo)
+
 	if len(os.Args) < 2 {
 		fmt.Println("usage: artie-copy CONFIG")
 		return
@@ -48,35 +52,38 @@ func main() {
 	cfgPath := os.Args[1]
 	slog.Info("Loading config", "path", cfgPath)
 	if err := cfg.LoadConfig(cfgPath); err != nil {
-		slog.Error("Failed to load configuration", "path", cfgPath, "error", err)
-		return
+		fmt.Printf("Failed to load configuration at %s\n", cfgPath)
+		fmt.Printf("error: %s\n", err)
+		os.Exit(1)
 	}
-
-	if !cfg.Config.IsValid() {
-		slog.Error("Configuration is invalid.")
-		cfg.Config.LogValidationErrors()
-		return
-	}
-
-	slog.SetLogLoggerLevel(cfg.LogLevelMap[cfg.Config.LogLevel])
 
 	slog.Info("Initializing database pool.")
 	if err := db.InitPool(); err != nil {
-		slog.Error("Failed to initialize the database pool.", "error", err)
-		return
+		fmt.Printf("Failed to initialize the database pool.\n")
+		fmt.Printf("error: %s\n", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
-	device, err := blk.GetBlockDevice(cfg.Config.Serial)
+	slog.Info("Loading device information.")
+	device, err := blk.GetBlockDevice(cfg.Device.Serial)
 	if err != nil {
-		slog.Error("Failed to get device information.", "error", err)
-		return
+		fmt.Printf("Failed to get device information.\n")
+		fmt.Printf("error: %s", err)
+		os.Exit(1)
 	}
 
-	if err = db.InitOpticalDriveInfo(context.Background(), cfg.Config.Serial); err != nil {
-		slog.Error("Failed to add/check drive info in the database.", "error", err)
-		return
+	if err = db.InitOpticalDriveInfo(context.Background(), cfg.Device.Serial); err != nil {
+		fmt.Printf("Failed to update drive info.\n")
+		fmt.Printf("error: %s\n", err)
+		os.Exit(1)
 	}
 
-	slog.Info("Service initialized.", "serial", cfg.Config.Serial, "device", device.Name)
+	slog.Info("Starting service.", "serial", cfg.Device.Serial, "device", device.Name, "address", cfg.Server.Address, "port", cfg.Server.Port)
+
+	if err = service.Run(); err != nil {
+		fmt.Printf("Failed to run server\n")
+		fmt.Printf("error: %s\n", err)
+		os.Exit(1)
+	}
 }

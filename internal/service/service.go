@@ -34,6 +34,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/kfisher/artie-copy-service/internal/cfg"
 )
 
 func Run() error {
@@ -44,5 +45,6 @@ func Run() error {
 		fmt.Fprint(w, "welcome to the world of endless wonder\n")
 	})
 
-	return http.ListenAndServe(":8000", r)
+	addr := fmt.Sprintf("%s:%d", cfg.Server.Address, cfg.Server.Port)
+	return http.ListenAndServe(addr, r)
 }

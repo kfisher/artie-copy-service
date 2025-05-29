@@ -30,128 +30,23 @@
 package cfg
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
 
 	"github.com/pelletier/go-toml/v2"
 )
 
-// TODO: This file is starting to get a little crunchy. May want to rethink the
-// approach.
+var (
+	Device  DeviceConfig
+	Server  ServerConfig
+	MakeMkv MakeMkvConfig
+	Db      DatabaseConfig
+)
 
-// Config contains the configuration data for the service.
-var Config ServiceConfig
-
-var LogLevelMap = map[string]slog.Level{
-	"debug":   slog.LevelDebug,
-	"info":    slog.LevelInfo,
-	"warning": slog.LevelWarn,
-	"error":   slog.LevelError,
-}
-
-// ServiceConfig defines the configuration options for the service.
-type ServiceConfig struct {
-	Name      string `toml:"name"`
-	Serial    string `toml:"serial_number"`
-	Address   string `toml:"address"`
-	Port      int32  `toml:"port"`
-	Directory string `toml:"working_directory"`
-	MakeMKV   string `toml:"makemkv_exe"`
-	ConnStr   string `toml:"connection_string"`
-	LogLevel  string `toml:"log_level"`
-}
-
-// IsValid checks if the configuration is valid.
-func (c *ServiceConfig) IsValid() bool {
-	if c.Name == "" {
-		return false
-	}
-
-	if c.Serial == "" {
-		return false
-	}
-
-	if c.Address == "" {
-		return false
-	}
-
-	if c.Port <= 0 {
-		return false
-	}
-
-	if c.Directory == "" {
-		return false
-	}
-
-	if _, err := os.Stat(c.Directory); os.IsNotExist(err) {
-		return false
-	}
-
-	// TODO[MED] Determine how to verify that the executable exists and is
-	// executable.
-
-	if c.MakeMKV == "" {
-		return false
-	}
-
-	if c.ConnStr == "" {
-		return false
-	}
-
-	if c.LogLevel != "" {
-		if _, ok := LogLevelMap[c.LogLevel]; !ok {
-			return false
-		}
-	}
-
-	return true
-}
-
-// LogValidationErrors logs any validation errors found in the configuration.
-func (c *ServiceConfig) LogValidationErrors() {
-	if c.Name == "" {
-		slog.Error("name is required and cannot be empty")
-	}
-
-	if c.Serial == "" {
-		slog.Error("serial_number is required and cannot be empty")
-	}
-
-	if c.Address == "" {
-		slog.Error("address is required and cannot be empty")
-	}
-
-	if c.Port <= 0 {
-		slog.Error("port must be a positive integer")
-	}
-
-	if c.Directory == "" {
-		slog.Error("working_directory is required and cannot be empty")
-	}
-
-	if _, err := os.Stat(c.Directory); os.IsNotExist(err) {
-		slog.Error("working_directory does not exist", "directory", c.Directory)
-	}
-
-	if c.MakeMKV == "" {
-		slog.Error("makemkv_exe is required and cannot be empty")
-	}
-
-	if c.ConnStr == "" {
-		slog.Error("connection_string is required and cannot be empty")
-	}
-
-	if c.LogLevel != "" {
-		if _, ok := LogLevelMap[c.LogLevel]; !ok {
-			slog.Error("log_level value is invalid. Must be debug, info, warning, or error")
-		}
-	}
-}
-
-// Load config loads the configuration options provided by the TOML file `path`
-// and updates the service's global config (see Config).
+// LoadConfig loads the configuration options provided by the TOML file `path`
+// and updates the service's global config.
 func LoadConfig(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
@@ -164,13 +59,108 @@ func LoadConfig(path string) error {
 		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	if err := toml.Unmarshal(bs, &Config); err != nil {
+	var config serviceConfig
+	if err := toml.Unmarshal(bs, &config); err != nil {
 		return fmt.Errorf("failed to parse config file: %w", err)
 	}
 
-	if Config.LogLevel == "" {
-		Config.LogLevel = "info"
+	if err = config.Device.Validate(); err != nil {
+		return fmt.Errorf("invalid device configuration: %w", err)
+	}
+
+	if err = config.Server.Validate(); err != nil {
+		return fmt.Errorf("invalid server configuration: %w", err)
+	}
+
+	if err = config.MakeMKV.Validate(); err != nil {
+		return fmt.Errorf("invalid makemkv configuration: %w", err)
+	}
+
+	if err = config.Db.Validate(); err != nil {
+		return fmt.Errorf("invalid db configuration: %w", err)
+	}
+
+	Device = config.Device
+	Server = config.Server
+	MakeMkv = config.MakeMKV
+	Db = config.Db
+
+	return nil
+}
+
+type DeviceConfig struct {
+	Name   string `toml:"name"`
+	Serial string `toml:"serial_number"`
+}
+
+func (d *DeviceConfig) Validate() error {
+	if d.Name == "" {
+		return errors.New("name is missing or empty")
+	}
+
+	if d.Serial == "" {
+		return errors.New("serial_number is missing or empty")
 	}
 
 	return nil
+}
+
+type ServerConfig struct {
+	Address string `toml:"address"`
+	Port    int32  `toml:"port"`
+}
+
+func (s *ServerConfig) Validate() error {
+	if s.Address == "" {
+		return errors.New("address is missing or empty")
+	}
+
+	if s.Port <= 0 {
+		return errors.New("port missing or invalid")
+	}
+
+	return nil
+}
+
+type MakeMkvConfig struct {
+	OutDir  string `toml:"output_directory"`
+	MakeMKV string `toml:"makemkv_exe"`
+}
+
+func (m *MakeMkvConfig) Validate() error {
+	if m.OutDir == "" {
+		return errors.New("output_directory is missing or empty")
+	}
+
+	if _, err := os.Stat(m.OutDir); os.IsNotExist(err) {
+		return errors.New("output_directory does not exist or is not a directory")
+	}
+
+	// TODO[MED] Determine how to verify that the executable exists and is
+	// executable.
+
+	if m.MakeMKV == "" {
+		return errors.New("makemkv_exe is missing or empty")
+	}
+
+	return nil
+}
+
+type DatabaseConfig struct {
+	ConnStr string `toml:"connection_string"`
+}
+
+func (d *DatabaseConfig) Validate() error {
+	if d.ConnStr == "" {
+		return errors.New("db is missing or empty")
+	}
+
+	return nil
+}
+
+type serviceConfig struct {
+	Device  DeviceConfig
+	Server  ServerConfig
+	MakeMKV MakeMkvConfig
+	Db      DatabaseConfig
 }

@@ -30,11 +30,27 @@ package cfg
 
 import (
 	"os"
-	"strings"
 	"testing"
 )
 
 func TestLoadConfig(t *testing.T) {
+	text := `# Test Config
+[device]
+name = "Drive A"
+serial_number = "4-8-15-16-23-42"
+
+[server]
+address = "127.0.0.1"
+port = 8010
+
+[makemkv]
+output_directory = "."
+makemkv_exe = "makemkvcon"
+
+[db]
+connection_string = "dbname=test-db"
+`
+
 	tmpFile, err := os.CreateTemp("", "test_load_config.*.toml")
 	if err != nil {
 		t.Error("Failed to create test file")
@@ -42,74 +58,132 @@ func TestLoadConfig(t *testing.T) {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	lines := []string{
-		"name = \"Drive A\"",
-		"serial_number = \"4-8-15-16-23-42\"",
-		"address = \"127.0.0.1\"",
-		"port = 8010",
-		"working_directory = \"/artie/working_dir\"",
-		"makemkv_exe = \"makemkvcon\"",
-	}
-
-	if _, err := tmpFile.WriteString(strings.Join(lines, "\n") + "\n"); err != nil {
+	if _, err := tmpFile.WriteString(text); err != nil {
 		t.Error("Failed to write test file")
 		return
 	}
 
 	if err = LoadConfig(tmpFile.Name()); err != nil {
-		t.Error("LoadConfig returned an error")
+		t.Error("LoadConfig returned an error: ", err)
 		return
 	}
 
-	if Config.Name != "Drive A" {
-		t.Errorf("Config.Name = %s, expected \"Drive A\"", Config.Name)
+	if Device.Name != "Drive A" {
+		t.Errorf("Device.Name = '%s', expected 'Drive A'", Device.Name)
 	}
 
-	if Config.Serial != "4-8-15-16-23-42" {
-		t.Errorf("Config.Serial = %s, expected \"4-8-15-16-23-42\"", Config.Serial)
+	if Device.Serial != "4-8-15-16-23-42" {
+		t.Errorf("Device.Serial = '%s', expected '4-8-15-16-23-42'", Device.Serial)
 	}
 
-	if Config.Address != "127.0.0.1" {
-		t.Errorf("Config.Address = %s, expected \"127.0.0.1\"", Config.Address)
+	if Server.Address != "127.0.0.1" {
+		t.Errorf("Server.Address = '%s', expected '127.0.0.1'", Server.Address)
 	}
 
-	if Config.Port != 8010 {
-		t.Errorf("Config.Port = %d, expected 8010", Config.Port)
+	if Server.Port != 8010 {
+		t.Errorf("Server.Port = '%d', expected 8010", Server.Port)
 	}
 
-	if Config.Directory != "/artie/working_dir" {
-		t.Errorf("Config.Directory = %s, expected \"/artie/working_dir\"", Config.Directory)
+	if MakeMkv.OutDir != "." {
+		t.Errorf("MakeMkv.OutDir = '%s', expected '.'", MakeMkv.OutDir)
+	}
+
+	if MakeMkv.MakeMKV != "makemkvcon" {
+		t.Errorf("MakeMkv.MakeMKV = '%s', expected 'makemkvcon'", MakeMkv.MakeMKV)
+	}
+
+	if Db.ConnStr != "dbname=test-db" {
+		t.Errorf("Db.ConnStr = '%s', expected 'dbname=test-db'", Db.ConnStr)
 	}
 }
 
-func TestIsValidate(t *testing.T) {
-	validConfig := ServiceConfig{
-		Name:      "Valid Drive",
-		Serial:    "123-456-789",
-		Address:   "127.0.0.1",
-		Port:      8080,
-		Directory: "..",
-		MakeMKV:   "makemkvcon",
+func TestDeviceConfigValidation(t *testing.T) {
+	valid := DeviceConfig{
+		Name:   "Valid Drive",
+		Serial: "123-456-789",
 	}
 
-	if !validConfig.IsValid() {
-		t.Error("IsValid returned false for a valid configuration")
-		validConfig.LogValidationErrors()
+	if err := valid.Validate(); err != nil {
+		t.Error("Expected valid device config.")
 	}
 
-	invalidConfigs := []ServiceConfig{
-		{Serial: "123-456-789", Address: "127.0.0.1", Port: 8080, Directory: "..", MakeMKV: "makemkvcon"},
-		{Name: "Valid Drive", Address: "127.0.0.1", Port: 8080, Directory: "..", MakeMKV: "makemkvcon"},
-		{Name: "Valid Drive", Serial: "123-456-789", Port: 8080, Directory: "..", MakeMKV: "makemkvcon"},
-		{Name: "Valid Drive", Serial: "123-456-789", Address: "127.0.0.1", Directory: "..", MakeMKV: "makemkvcon"},
-		{Name: "Valid Drive", Serial: "123-456-789", Address: "127.0.0.1", Port: 8080, MakeMKV: "makemkvcon"},
-		{Name: "Valid Drive", Serial: "123-456-789", Address: "127.0.0.1", Port: 8080, Directory: "/probably/doesnt/exist", MakeMKV: "makemkvcon"},
-		{Name: "Valid Drive", Serial: "123-456-789", Address: "127.0.0.1", Port: 8080, Directory: ".."},
+	invalid := []DeviceConfig{
+		{Name: "", Serial: "123-456-789"},
+		{Name: "Valid Drive", Serial: ""},
+		{Name: "", Serial: ""},
 	}
 
-	for _, config := range invalidConfigs {
-		if config.IsValid() {
-			t.Error("IsValid returned true for an invalid configuration")
+	for _, cfg := range invalid {
+		if err := cfg.Validate(); err == nil {
+			t.Errorf("Expected invalid device config: %+v", cfg)
+		}
+	}
+}
+
+func TestServerConfigValidation(t *testing.T) {
+	valid := ServerConfig{
+		Address: "127.0.0.1",
+		Port:    8080,
+	}
+
+	if err := valid.Validate(); err != nil {
+		t.Error("Expected valid server config.")
+	}
+
+	invalid := []ServerConfig{
+		{Address: "", Port: 8080},
+		{Address: "127.0.0.1", Port: -1},
+		{Address: "127.0.0.1"},
+		{Address: ""},
+	}
+
+	for _, cfg := range invalid {
+		if err := cfg.Validate(); err == nil {
+			t.Errorf("Expected invalid server config: %+v", cfg)
+		}
+	}
+}
+
+func TestMakeMkvConfigValidation(t *testing.T) {
+	valid := MakeMkvConfig{
+		OutDir:  ".",
+		MakeMKV: "makemkvcon",
+	}
+
+	if err := valid.Validate(); err != nil {
+		t.Error("Expected valid MakeMKV config.")
+	}
+
+	invalid := []MakeMkvConfig{
+		{OutDir: "", MakeMKV: "makemkvcon"},
+		{OutDir: ".", MakeMKV: ""},
+		{OutDir: "", MakeMKV: ""},
+		{OutDir: "unlikely/to/exist", MakeMKV: ""},
+	}
+
+	for _, cfg := range invalid {
+		if err := cfg.Validate(); err == nil {
+			t.Errorf("Expected invalid MakeMKV config: %+v", cfg)
+		}
+	}
+}
+
+func TestDbConfigValidation(t *testing.T) {
+	valid := DatabaseConfig{
+		ConnStr: "dbname=test-db",
+	}
+
+	if err := valid.Validate(); err != nil {
+		t.Error("Expected valid database config.")
+	}
+
+	invalid := []DatabaseConfig{
+		{ConnStr: ""},
+	}
+
+	for _, cfg := range invalid {
+		if err := cfg.Validate(); err == nil {
+			t.Errorf("Expected invalid database config: %+v", cfg)
 		}
 	}
 }

@@ -44,7 +44,7 @@ var Pool *pgxpool.Pool = nil
 
 // InitPool initializes the connection pool.
 func InitPool() error {
-	pool, err := pgxpool.New(context.Background(), cfg.Config.ConnStr)
+	pool, err := pgxpool.New(context.Background(), cfg.Db.ConnStr)
 	if err != nil {
 		return err
 	} else {
