@@ -30,13 +30,17 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/kfisher/artie-copy-service/internal/cfg"
+	"github.com/kfisher/artie-copy-service/internal/models"
 )
 
+// Run configures the routes and starts the HTTP server.
 func Run() error {
 
 	r := mux.NewRouter()
@@ -45,6 +49,63 @@ func Run() error {
 		fmt.Fprint(w, "welcome to the world of endless wonder\n")
 	})
 
+	r.HandleFunc("/status", getStatus).Methods("GET")
+
+	r.HandleFunc("/copy/start", startCopy).Methods("POST")
+	r.HandleFunc("/copy/cancel", cancelCopy).Methods("POST")
+
+	r.HandleFunc("/reset", reset).Methods("POST")
+
+	r.HandleFunc("/copy-operations", getCopyOperationList).Methods("GET")
+	r.HandleFunc("/copy-operations/{id}", getCopyOperation).Methods("GET")
+
+	r.Use(loggingMiddleware)
+
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Address, cfg.Server.Port)
 	return http.ListenAndServe(addr, r)
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("received request", "method", r.Method, "url", r.URL)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func getStatus(w http.ResponseWriter, r *http.Request) {
+	// TODO[HIGH]: Need a proper implementation for this. Still not sure
+	// where all this information will be stored or fetched.
+	status := models.OpticalDrive{
+		Id:           0,
+		Name:         cfg.Device.Name,
+		Host:         "",
+		DeviceName:   "",
+		SerialNumber: cfg.Device.Serial,
+		State:        models.DriveStateIdle,
+		DiscLabel:    "",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	json.NewEncoder(w).Encode(status)
+}
+
+func startCopy(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Not implemented yet!", 500)
+}
+
+func cancelCopy(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Not implemented yet!", 500)
+}
+
+func reset(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Not implemented yet!", 500)
+}
+
+func getCopyOperationList(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Not implemented yet!", 500)
+}
+
+func getCopyOperation(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Not implemented yet!", 500)
 }
